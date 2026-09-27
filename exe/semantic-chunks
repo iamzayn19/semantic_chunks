@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "json"
+require "optparse"
+require "semantic_chunks"
+
+options = { max_tokens: 400, overlap: 60 }
+
+OptionParser.new do |parser|
+  parser.banner = "Usage: semantic-chunks FILE [--max-tokens N] [--overlap N]"
+  parser.on("--max-tokens N", Integer) { |value| options[:max_tokens] = value }
+  parser.on("--overlap N", Integer) { |value| options[:overlap] = value }
+end.parse!
+
+path = ARGV.fetch(0) do
+  warn "semantic-chunks: missing file"
+  exit 1
+end
+
+text = File.read(path, encoding: "UTF-8")
+chunks = SemanticChunks.split(text, **options).map(&:to_h)
+puts JSON.pretty_generate(chunks)
